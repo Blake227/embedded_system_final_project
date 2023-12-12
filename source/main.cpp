@@ -38,22 +38,13 @@ static size_t SKIP_FIRST_EVENTS = 50;
 static size_t half_transfer_events = 0;
 static size_t transfer_complete_events = 0;
 int recordtime = 0;
+bool full = true;
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full
 void target_audio_buffer_full() {
     // pause audio stream
-    int32_t ret = BSP_AUDIO_IN_Pause(AUDIO_INSTANCE);
-    printf("sending_data\n");
-    socketdemo.send_data(TARGET_AUDIO_BUFFER , 64000);
-    printf("%d ~ %d recorded:\n", recordtime, recordtime + 2);
-    printf("%02x", TARGET_AUDIO_BUFFER[0]);
+    printf("%d second ~ %d second recorded.\n", recordtime, recordtime + 2);
     recordtime += 2;
-    TARGET_AUDIO_BUFFER_IX = 0;
-    transfer_complete_events = 0;
-    half_transfer_events = 0;
-    ret = BSP_AUDIO_IN_Resume(AUDIO_INSTANCE);
-
-    
 }
 
 /**
@@ -62,31 +53,28 @@ void target_audio_buffer_full() {
 * @retval None
 */
 void sendHalf(){
-    //printf("half\n");
-    //printf("%d\n", TARGET_AUDIO_BUFFER[TARGET_AUDIO_BUFFER_IX]);
-    //printf("%d", TARGET_AUDIO_BUFFER_IX);
-    //socketdemo.send_data(TARGET_AUDIO_BUFFER, 1);
+    printf("half\n");
+    printf("%d %d\n", TARGET_AUDIO_BUFFER_IX, TARGET_AUDIO_BUFFER_NB_SAMPLES);
+    printf("%d\n", TARGET_AUDIO_BUFFER[TARGET_AUDIO_BUFFER_IX]);
+    socketdemo.send_data(TARGET_AUDIO_BUFFER, 32000);
 }
 void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
     half_transfer_events++;
     if (half_transfer_events < SKIP_FIRST_EVENTS) return;
-
+    
     uint32_t buffer_size = PCM_BUFFER_LEN / 2; /* Half Transfer */
     uint32_t nb_samples = buffer_size / sizeof(int16_t); /* Bytes to Length */
-
-    if ((TARGET_AUDIO_BUFFER_IX + nb_samples) > TARGET_AUDIO_BUFFER_NB_SAMPLES) {
-        return;
-    }
+    
     
     /* Copy first half of PCM_Buffer from Microphones onto Fill_Buffer */
     memcpy(((uint8_t*)TARGET_AUDIO_BUFFER) + (TARGET_AUDIO_BUFFER_IX * 2), PCM_Buffer, buffer_size);
     TARGET_AUDIO_BUFFER_IX += nb_samples;
-    ev_queue.call(sendHalf);
 
-    if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
-        ev_queue.call(&target_audio_buffer_full);
-        return;
+    if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES / 2 && full == true) {
+        ev_queue.call(sendHalf);
+        full = false;
     }
+    
 }
 
 /**
@@ -95,30 +83,26 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
 * @retval None
 */
 void sendSecondHalf(){
-    //printf("secondhalf\n");
-    //printf("%d\n", TARGET_AUDIO_BUFFER[TARGET_AUDIO_BUFFER_IX]);
-    //socketdemo.send_data(TARGET_AUDIO_BUFFER , 1);
+    printf("secondhalf\n");
+    printf("%d %d\n", TARGET_AUDIO_BUFFER_IX, TARGET_AUDIO_BUFFER_NB_SAMPLES);
+    printf("%d\n", TARGET_AUDIO_BUFFER[TARGET_AUDIO_BUFFER_IX]);
+    socketdemo.send_data(TARGET_AUDIO_BUFFER + 16000, 32000);
     
 }
 void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
     transfer_complete_events++;
     if (transfer_complete_events < SKIP_FIRST_EVENTS) return;
-
     uint32_t buffer_size = PCM_BUFFER_LEN / 2; /* Half Transfer */
     uint32_t nb_samples = buffer_size / sizeof(int16_t); /* Bytes to Length */
 
-    if ((TARGET_AUDIO_BUFFER_IX + nb_samples) > TARGET_AUDIO_BUFFER_NB_SAMPLES) {
-        return;
-    }
-
     /* Copy second half of PCM_Buffer from Microphones onto Fill_Buffer */
-    memcpy(((uint8_t*)TARGET_AUDIO_BUFFER) + (TARGET_AUDIO_BUFFER_IX * 2),
-        ((uint8_t*)PCM_Buffer) + (nb_samples * 2), buffer_size);
+    memcpy(((uint8_t*)TARGET_AUDIO_BUFFER) + (TARGET_AUDIO_BUFFER_IX * 2),((uint8_t*)PCM_Buffer) + (nb_samples * 2), buffer_size);
     TARGET_AUDIO_BUFFER_IX += nb_samples;
-    ev_queue.call(sendSecondHalf);
-    if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
-        ev_queue.call(&target_audio_buffer_full);
-        return;
+    if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES && full == false) {
+        ev_queue.call(sendSecondHalf);
+        ev_queue.call(target_audio_buffer_full);
+        full = true;
+        TARGET_AUDIO_BUFFER_IX = 0;
     }
 }
 
