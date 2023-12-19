@@ -5,7 +5,7 @@ import json
 
 def Get_MusicRecognition_Result(filename):
     data = {
-        'api_token': '97e14211c315786ea1b9c97c5b1862dd',
+        'api_token': '44c6ff8b0c48088f01c4367de84a0adf',
         'return': 'apple_music,spotify',
     }
 

@@ -35,7 +35,7 @@ def recognizer():
             array2wav(Byte_Array, 'music.wav')
             result = json.loads(Get_MusicRecognition_Result('music.wav'))
             if (result['status']=='success' and result['result']!=None):
-                Music_Info = result['result']['artist'] + ' ' + result['result']['title']
+                Music_Info = result['result']['artist'] + ' - ' + result['result']['title']
                 print(Music_Info)
                 done = 1
             else: 
@@ -43,10 +43,6 @@ def recognizer():
 
 if __name__ == "__main__":
     receiver_thread = threading.Thread(target = receiver)
-    recognizer_thread = threading.Thread(target = recognizer)
-    
     receiver_thread.start()
-    recognizer_thread.start()
-
+    recognizer()
     receiver_thread.join()
-    recognizer_thread.join()
