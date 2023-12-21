@@ -21,11 +21,10 @@
 #include <cstdio>
 
 
-static float32_t PCM_Buffer[PCM_BUFFER_LEN / 2];
+static uint16_t PCM_Buffer[PCM_BUFFER_LEN / 2];
 static BSP_AUDIO_Init_t MicParams;
 static EventQueue ev_queue;
 InterruptIn btn(BUTTON1);
-FIR_f32<NUM_TAPS> fir(firCoeffs32);
 SocketDemo socketdemo;
 
 // Place to store final audio (alloc on the heap), here two seconds...
