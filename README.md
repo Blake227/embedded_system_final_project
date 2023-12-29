@@ -15,7 +15,7 @@ It is relatively easy to do music recognition on mobile phones. However, in the 
 
 ## Workflow
 
-![Screenshot 2023-12-21 at 9.23.02 PM](https://hackmd.io/_uploads/rytVS3Gw6.png)
+<img width="923" alt="upload_2d7fdf23f97e7fa0cdcb30b9370da82b" src="https://github.com/Blake227/embedded_system_final/assets/37241139/38735c1f-8a09-4036-b0e9-d1f9e7628baf">
 
 ## Implementation
 ### STM32
@@ -23,14 +23,14 @@ It is relatively easy to do music recognition on mobile phones. However, in the 
 - Using DMA with callback function to collect audio data from microphone
 - Buffer size: PCM_buffer = 32, TARGET_AUDIO_BUFFER = 32000
 - Audio data directly loaded into PCM_buffer, then transfer to TARGET_AUDIO_BUFFER by callback function every second
-![Screenshot 2023-12-22 at 3.12.36 PM](https://hackmd.io/_uploads/rk_lPnMv6.png)
+<img width="895" alt="upload_40a9be09735c8d76c5502ed4383a5c16" src="https://github.com/Blake227/embedded_system_final/assets/37241139/280f731d-0973-4124-9f29-1b719722670b">
 <br>
 
 * Send audio data through Wi-Fi when TARGET_AUDIO_BUFFER half full.
 * If data sent successfully, then continue. Otherwise, re-send data. If re-send data more than third times, end the detection.
-![Screenshot 2023-12-22 at 3.16.18 PM](https://hackmd.io/_uploads/HktCvnMD6.png)
-
+<img width="923" alt="upload_218f7d91b274032d92a98f680b38e7e8" src="https://github.com/Blake227/embedded_system_final/assets/37241139/bc8eda4f-7a9b-470b-91e9-c6013827612d">
 <br>
+
 - Music recognition usually ends up in 10 seconds, and the API can only upload 1.5Mb file, which approximately equals to 40 seconds. 
 - Hence, after detecting for 40 seconds, we will end recoding sound and sending data.
 
